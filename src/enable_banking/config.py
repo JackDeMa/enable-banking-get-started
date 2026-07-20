@@ -10,7 +10,8 @@ class Settings:
     pem_file: Path
     base_url: str = "https://api.enablebanking.com"
     redirect_url: str = "https://localhost:8000/callback" # application's redirect URL
-    session_memory_json: str = "enable_banking_session.json"
+    session_memory_json: Path = Path("data/enable_banking_session.json")
+    session_django_json: Path = Path("data/enable_banking_session_from_django.json")
 
     @property
     def application_id(self) -> str:
@@ -20,6 +21,12 @@ class Settings:
     def from_env(cls) -> "Settings":
         env_file = find_dotenv(usecwd=True)
         load_dotenv(env_file)
+
+        project_root = (
+            Path(env_file).resolve().parent
+            if env_file
+            else Path.cwd()
+        )
 
         pem_value = os.getenv("PEM_FILE")
         if not pem_value:
@@ -37,4 +44,35 @@ class Settings:
                 f"File PEM non trovato: {pem_file}"
             )
         
-        return cls(pem_file=pem_file)
+        session_path = resolve_project_path(
+            project_root,
+            os.getenv(
+                "SESSION_MEMORY_JSON",
+                "data/enable_banking_session.json",
+            )
+        )
+
+        session_response_path = resolve_project_path(
+            project_root,
+            os.getenv(
+                "SESSION_MEMORY_JSON_2",
+                "data/enable_banking_session_from_django.json",
+            )
+        )
+
+        return cls(pem_file=pem_file,
+                   session_memory_json=session_path,
+                   session_django_json=session_response_path,
+                   
+                   )
+
+def resolve_project_path(
+    project_root,
+    value: str,
+) -> Path:
+    path = Path(value).expanduser()
+
+    if path.is_absolute():
+        return path
+
+    return (project_root / path).resolve()
