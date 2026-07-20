@@ -9,6 +9,7 @@ requires-python = ">=3.11"
 dependencies = [
     "requests>=2.32,<3",
     "python-dotenv>=1.0,<2",
+    "PyJWT[crypto]>=2.8,<3",
 ]
 
 [project.optional-dependencies]
