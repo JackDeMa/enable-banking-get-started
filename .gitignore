@@ -5,6 +5,7 @@
 !.env.example
 *.pem
 data/*.json
+tls/
 
 # Python
 __pycache__/

@@ -20,6 +20,12 @@ dev = [
 
 web = [
     "Django>=5.2,<6",
+    "uvicorn>=0.30,<1",
+]
+
+notebook = [
+    "jupyterlab>=4,<5",
+    "pandas>=2,<4",
 ]
 
 [tool.pytest.ini_options]
