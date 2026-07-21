@@ -17,10 +17,24 @@ class FakeResponse:
 
 class FakeHttpSession:
     def __init__(self):
+        self.method = None
+        self.url = None
         self.request_body = None
+        self.timeout = None
 
-    def post(self, url, *, json, headers):
-        self.request_body = json
+    def request(
+        self,
+        *,
+        method,
+        url,
+        headers,
+        timeout,
+        **kwargs,
+    ):
+        self.method = method
+        self.url = url
+        self.request_body = kwargs.get("json")
+        self.timeout = timeout
         return FakeResponse()
 
 
@@ -40,6 +54,7 @@ def test_ask_for_new_session_saves_generated_state(
     client = object.__new__(EnableBankingClient)
     client.settings = SimpleNamespace(
         base_url="https://api.example",
+        request_timeout_seconds=30.0,
         redirect_url="https://localhost:8000/callback",
         session_database=database,
     )
@@ -52,6 +67,9 @@ def test_ask_for_new_session_saves_generated_state(
     }
 
     client.ask_for_new_session(bank)
+    assert http_session.method == "POST"
+    assert http_session.url == "https://api.example/auth"
+    assert http_session.timeout == 30.0
 
     assert http_session.request_body["state"] == "generated-state"
 

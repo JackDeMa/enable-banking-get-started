@@ -42,6 +42,22 @@ class EnableBankingClient:
     def update_headers(self):
         self.headers = self._headers()
 
+    def _request(
+        self,
+        method: str,
+        path: str,
+        **kwargs: Any,
+    ) -> requests.Response:
+        response = self._http_session.request(
+            method=method,
+            url=f"{self.settings.base_url}{path}",
+            headers=self.headers,
+            timeout=self.settings.request_timeout_seconds,
+            **kwargs,
+        )
+        response.raise_for_status()
+        return response
+
     def _body_for_new_session(
         self,
         bank,
@@ -93,15 +109,14 @@ class EnableBankingClient:
             path=self.settings.session_database,
         )
 
-        response = self._http_session.post(
-            f"{self.settings.base_url}/auth",
+        response = self._request(
+            "POST",
+            "/auth",
             json=self._body_for_new_session(
                 bank,
                 state=state,
             ),
-            headers=self.headers,
         )
-        response.raise_for_status()
 
         auth_url = response.json()["url"]
         print(f"To authenticate open URL {auth_url}")

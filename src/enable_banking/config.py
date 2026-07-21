@@ -9,8 +9,11 @@ from dotenv import find_dotenv, load_dotenv
 class Settings:
     pem_file: Path
     base_url: str = "https://api.enablebanking.com"
+    request_timeout_seconds: float = 30.0
     redirect_url: str = "https://localhost:8000/callback" # application's redirect URL
-    session_database: Path = Path("data/enable_banking_sessions.sqlite3")
+    session_database: Path = Path(
+        "data/enable_banking_sessions.sqlite3"
+        )
 
     @property
     def application_id(self) -> str:
