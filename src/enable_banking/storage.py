@@ -20,8 +20,14 @@ CREATE TABLE IF NOT EXISTS enable_banking_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_enable_banking_sessions_bank_key
     ON enable_banking_sessions (bank_key, id DESC);
-"""
 
+CREATE TABLE IF NOT EXISTS authorization_flows (
+    state TEXT PRIMARY KEY,
+    bank_key TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    consumed_at TEXT
+);
+"""
 
 def _connect(path: str | Path) -> sqlite3.Connection:
     destination = Path(path)
@@ -111,3 +117,67 @@ def load_latest_session(
     if not isinstance(session, dict):
         raise ValueError("Il record della sessione non contiene un oggetto JSON")
     return session
+
+def save_authorization_flow(
+    state: str,
+    bank_key: str,
+    path: str | Path,
+) -> None:
+    """Store a pending authorization flow."""
+    if not state:
+        raise ValueError("Lo state non può essere vuoto")
+    if not bank_key:
+        raise ValueError("La bank_key non può essere vuota")
+
+    with closing(_connect(path)) as connection:
+        with connection:
+            connection.execute(
+                """
+                INSERT INTO authorization_flows (
+                    state,
+                    bank_key
+                ) VALUES (?, ?)
+                """,
+                (state, bank_key),
+            )
+
+def consume_authorization_flow(
+    state: str,
+    path: str | Path,
+    *,
+    max_age_seconds: int = 600,
+) -> str | None:
+    """Consume a pending state and return its bank key."""
+    if not state:
+        return None
+    if max_age_seconds <= 0:
+        raise ValueError("max_age_seconds deve essere positivo")
+
+    minimum_created_at = f"-{max_age_seconds} seconds"
+
+    with closing(_connect(path)) as connection:
+        with connection:
+            cursor = connection.execute(
+                """
+                UPDATE authorization_flows
+                SET consumed_at = CURRENT_TIMESTAMP
+                WHERE state = ?
+                  AND consumed_at IS NULL
+                  AND created_at >= datetime('now', ?)
+                """,
+                (state, minimum_created_at),
+            )
+
+            if cursor.rowcount != 1:
+                return None
+
+            row = connection.execute(
+                """
+                SELECT bank_key
+                FROM authorization_flows
+                WHERE state = ?
+                """,
+                (state,),
+            ).fetchone()
+
+    return row["bank_key"] if row is not None else None

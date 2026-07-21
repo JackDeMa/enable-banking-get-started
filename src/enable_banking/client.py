@@ -3,12 +3,13 @@ from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
 
+import secrets
 
 import requests
 from .auth import create_jwt
 from .config import Settings
 from .banks import get_bank_key
-from .storage import load_latest_session
+from .storage import load_latest_session, save_authorization_flow
 
 class BankSessionEntry(TypedDict):
     sessions: dict[str, Any]
@@ -41,7 +42,12 @@ class EnableBankingClient:
     def update_headers(self):
         self.headers = self._headers()
 
-    def _body_for_new_session(self, bank, psu_type: str = "personal"):
+    def _body_for_new_session(
+        self,
+        bank,
+        state: str,
+        psu_type: str = "personal",
+    ):
         return {
             "access": {
                 "valid_until": (datetime.now(timezone.utc) + timedelta(days=10)).isoformat() # 10 days ahead
@@ -50,7 +56,7 @@ class EnableBankingClient:
                 "name": bank["name"], # BANK_NAME
                 "country": bank['country'] # BANK_COUNTRY
                 },
-            "state": "123e4567-e89b-12d3-a456-426614174000",
+            "state": state,
             "redirect_url": self.settings.redirect_url, # application's redirect URL
             "psu_type": psu_type,
             }
@@ -76,14 +82,32 @@ class EnableBankingClient:
     
     def ask_for_new_session(self, bank):
         """
-        If no session is available, start negotiating a new one obtaining the access link
+        Start negotiating a new session and return the authorization response.
         """
-        r = self._http_session.post(f"{self.settings.base_url}/auth", json=self._body_for_new_session(bank), headers=self.headers)
-        auth_url = r.json()['url']
-        print(f"To authenticate open URL {auth_url}") # open this URL in a web browser
-        print("Status:", r.status_code)
-        r.raise_for_status()
-        return r
+        bank_key = get_bank_key(bank)
+        state = secrets.token_urlsafe(32)
+
+        save_authorization_flow(
+            state=state,
+            bank_key=bank_key,
+            path=self.settings.session_database,
+        )
+
+        response = self._http_session.post(
+            f"{self.settings.base_url}/auth",
+            json=self._body_for_new_session(
+                bank,
+                state=state,
+            ),
+            headers=self.headers,
+        )
+        response.raise_for_status()
+
+        auth_url = response.json()["url"]
+        print(f"To authenticate open URL {auth_url}")
+        print("Status:", response.status_code)
+
+        return response
     
     def open_session(self, bank, force_new: bool = False) -> bool:
         """
