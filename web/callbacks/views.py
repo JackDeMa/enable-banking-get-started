@@ -2,7 +2,7 @@ from django.http import JsonResponse
 
 from enable_banking.client import EnableBankingClient
 from enable_banking.config import Settings
-from enable_banking.storage import save_session, save_session_id
+from enable_banking.storage import save_session
 
 def enable_banking_callback(request):
     error = request.GET.get("error")
@@ -31,10 +31,6 @@ def enable_banking_callback(request):
 
     save_session(
         session,
-        settings.session_django_json,
-    )
-    save_session_id(
-        session,
-        settings.session_memory_json,
+        settings.session_database,
     )
     return JsonResponse(session)

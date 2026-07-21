@@ -5,7 +5,9 @@
 !.env.example
 *.pem
 data/*.json
+data/*.sqlite3*
 tls/
+web/db.sqlite3
 
 # Python
 __pycache__/

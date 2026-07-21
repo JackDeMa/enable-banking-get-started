@@ -1,5 +1,3 @@
-from typing import Any
-
 def get_bank(BankList: list, BankName: str):
     exact_match = [b for b in BankList if BankName.lower() == b["name"].lower()]
     if len(exact_match) == 1:
@@ -30,6 +28,6 @@ def get_bank(BankList: list, BankName: str):
 
 
 def get_bank_key(bank):
-    bank_key = f"{bank["name"]}_{bank['country']}"
+    bank_key = f"{bank['name']}_{bank['country']}"
     #print(f"Let's load bank session for {bank["name"]} (bank_key={bank_key})...")
     return bank_key
