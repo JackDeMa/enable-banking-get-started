@@ -84,16 +84,15 @@ class EnableBankingClient:
             psu_type: str = "personal",
             service: str = "AIS",
     ) -> list[dict[str, Any]]:
-        response = self._http_session.get(
-            f"{self.settings.base_url}/aspsps",
-            headers=self.headers,
+        response = self._request(
+            "GET",
+            "/aspsps",
             params={
                 "country": country,
                 "psu_type": psu_type,
                 "service": service,
             },
         )
-        response.raise_for_status()
         return response.json()["aspsps"]
     
     def ask_for_new_session(self, bank):
@@ -143,8 +142,10 @@ class EnableBankingClient:
             return False
 
         session_id = saved_session["session_id"]
-        r = self._http_session.get(f"{self.settings.base_url}/sessions/{session_id}", headers=self.headers)
-        r.raise_for_status()
+        r = self._request(
+            "GET",
+            f"/sessions/{session_id}",
+        )
 
         enable_banking_session  = r.json()
         print("Session ID retrieved from database")
@@ -164,10 +165,13 @@ class EnableBankingClient:
         return self.sessions[bank_key]["session"]
     
     def get_balance(self, bank_key: str):
-        account_uid = self.sessions[bank_key]["session"]["accounts_data"][0]["uid"]
-#        account_uid = self.get_account_uid(bank_key)
-        r = self._http_session.get(f"https://api.enablebanking.com/accounts/{account_uid}/balances",headers=self.headers)
-        return r.json()
+        account_uid = self.get_account_uid(bank_key)
+
+        response = self._request(
+            "GET",
+            f"/accounts/{account_uid}/balances",
+        )
+        return response.json()
     
     def get_info(self, bank_key: str, info: str = "balances"):
         """
@@ -179,8 +183,11 @@ class EnableBankingClient:
         """
 
         account_uid = self.get_account_uid(bank_key)
-        r = self._http_session.get(f"https://api.enablebanking.com/accounts/{account_uid}/{info}",headers=self.headers)
-        return r.json()
+        response = self._request(
+            "GET",
+            f"/accounts/{account_uid}/{info}",
+        )
+        return response.json()
     
     def get_account_uid(self, bank_key: str):
         return self.sessions[bank_key]["session"]["accounts_data"][0]["uid"]
@@ -200,14 +207,15 @@ class EnableBankingClient:
             print(f"Transactions on {bank_key}:")
             pprint(response["transactions"])
 
-    def authorize_session(self, code: str) -> dict[str, Any]:
-        response = self._http_session.post(
-            f"{self.settings.base_url}/sessions",
+    def authorize_session(
+        self,
+        code: str,
+    ) -> dict[str, Any]:
+        response = self._request(
+            "POST",
+            "/sessions",
             json={"code": code},
-            headers=self.headers,
         )
-
-        response.raise_for_status()
         return response.json()
 
                 

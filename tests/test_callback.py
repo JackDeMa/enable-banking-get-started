@@ -1,11 +1,4 @@
-import os
 from types import SimpleNamespace
-
-os.environ["DJANGO_SETTINGS_MODULE"] = "web.config.settings"
-
-import django
-
-django.setup()
 
 from django.test import RequestFactory
 

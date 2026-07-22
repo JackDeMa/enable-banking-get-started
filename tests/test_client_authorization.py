@@ -80,3 +80,34 @@ def test_ask_for_new_session_saves_generated_state(
         )
         == "Example Bank_IT"
     )
+
+
+def test_get_balance_uses_shared_request():
+    http_session = FakeHttpSession()
+
+    client = object.__new__(EnableBankingClient)
+    client.settings = SimpleNamespace(
+        base_url="https://api.example",
+        request_timeout_seconds=15.0,
+    )
+    client.headers = {}
+    client._http_session = http_session
+    client.sessions = {
+        "Example Bank_IT": {
+            "session": {
+                "accounts_data": [
+                    {"uid": "account-123"},
+                ],
+            },
+            "bank": {
+                "name": "Example Bank",
+                "country": "IT",
+            },
+        }
+    }
+
+    client.get_balance("Example Bank_IT")
+
+    assert http_session.method == "GET"
+    assert http_session.url == "https://api.example/accounts/account-123/balances"
+    assert http_session.timeout == 15.0
