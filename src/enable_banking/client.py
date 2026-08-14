@@ -150,9 +150,15 @@ class EnableBankingClient:
         enable_banking_session  = r.json()
         print("Session ID retrieved from database")
 
-        if enable_banking_session.get("status") == "EXPIRED":
+        sess_status = enable_banking_session.get("status")
+        print(f"Session status: {sess_status}")
+        if sess_status == "EXPIRED":
             print("Session expired, creating a new one")
-            r = self.ask_for_new_session(bank)
+            r = self.ask_for_new_session(bank, access_valid_days)
+            return False
+        elif sess_status == "CLOSED":
+            print("Session closed, creating a new one")
+            r = self.ask_for_new_session(bank, access_valid_days)
             return False
         
         self.sessions[bank_key] = {
