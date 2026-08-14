@@ -1,4 +1,4 @@
-"""Genera (una tantum) un certificato TLS self-signed per la callback locale in tls/."""
+"""Generate (once) a self-signed TLS certificate for the local callback in tls/."""
 
 import ipaddress
 from datetime import datetime, timedelta, timezone
@@ -16,7 +16,7 @@ KEY_FILE = TLS_DIR / "server.key"
 
 def main() -> None:
     if CERT_FILE.is_file() and KEY_FILE.is_file():
-        print(f"Certificato già presente in {TLS_DIR}")
+        print(f"Certificate already present in {TLS_DIR}")
         return
 
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -26,12 +26,12 @@ def main() -> None:
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
-        .issuer_name(subject)  # self-signed: emittente = soggetto
+        .issuer_name(subject)  # self-signed: issuer = subject
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(now - timedelta(minutes=1))
         .not_valid_after(now + timedelta(days=3650))
-        # Le SAN sono ciò che il browser confronta con l'indirizzo visitato.
+        # The SANs are what the browser matches against the visited address.
         .add_extension(
             x509.SubjectAlternativeName(
                 [
@@ -54,7 +54,7 @@ def main() -> None:
         )
     )
     CERT_FILE.write_bytes(certificate.public_bytes(serialization.Encoding.PEM))
-    print(f"Certificato generato in {TLS_DIR}")
+    print(f"Certificate generated in {TLS_DIR}")
 
 
 if __name__ == "__main__":
