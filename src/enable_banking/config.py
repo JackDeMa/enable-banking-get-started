@@ -32,7 +32,7 @@ class Settings:
 
         pem_value = os.getenv("PEM_FILE")
         if not pem_value:
-            raise RuntimeError("La variabile PEM_FILE non è configurata")
+            raise RuntimeError("The PEM_FILE variable is not configured")
         
         pem_file = Path(pem_value).expanduser()
         if not pem_file.is_absolute():
@@ -43,7 +43,7 @@ class Settings:
 
         if not pem_file.is_file():
             raise FileNotFoundError(
-                f"File PEM non trovato: {pem_file}"
+                f"PEM file not found: {pem_file}"
             )
         
         session_database = resolve_project_path(

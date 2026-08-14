@@ -21,10 +21,10 @@ class EnableBankingClient:
     def __init__(self, settings: Settings):
         self.settings = settings
         
-        # Client HTTP interno
+        # Internal HTTP client
         self._http_session = requests.Session()
 
-        # Sessioni Enable Banking, indicizzate per banca
+        # Enable Banking sessions, indexed by bank
         self.sessions: dict[str, BankSessionEntry] = {}
 
         self.update_headers()
@@ -38,7 +38,7 @@ class EnableBankingClient:
             "Authorization": f"Bearer {token}",
             "Accept": "application/json",
             }
-    
+
     def update_headers(self):
         self.headers = self._headers()
 
@@ -181,7 +181,7 @@ class EnableBankingClient:
     
     def get_info(self, bank_key: str, info: str = "balances"):
         """
-        Questa funzione si può usare per chiamare:
+        This function can be used to call:
         - "balances",
         - "transactions",
         - "details",

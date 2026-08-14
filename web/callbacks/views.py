@@ -16,7 +16,7 @@ def enable_banking_callback(request):
     state = request.GET.get("state")
     if not state:
         return JsonResponse(
-            {"error": "Parametro 'state' mancante"},
+            {"error": "Missing 'state' parameter"},
             status=400,
         )
 
@@ -28,8 +28,8 @@ def enable_banking_callback(request):
         return JsonResponse(
             {
                 "error": (
-                    "State non valido, scaduto "
-                    "o già utilizzato"
+                    "Invalid, expired "
+                    "or already used state"
                 )
             },
             status=400,
@@ -52,7 +52,7 @@ def enable_banking_callback(request):
 
     if not code:
         return JsonResponse(
-            {"error": "Parametro 'code' mancante"},
+            {"error": "Missing 'code' parameter"},
             status=400,
         )
 
@@ -67,5 +67,5 @@ def enable_banking_callback(request):
 
 def connection_success(request):
     return HttpResponse(
-        "Sessione Enable Banking salvata correttamente."
+        "Enable Banking session saved successfully."
     )

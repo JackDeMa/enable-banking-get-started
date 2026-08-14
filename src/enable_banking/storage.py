@@ -48,16 +48,16 @@ def _session_fields(session: Mapping[str, Any]) -> tuple[str, str, str, str]:
     aspsp = session.get("aspsp")
 
     if not isinstance(session_id, str) or not session_id:
-        raise ValueError("La sessione non contiene un session_id valido")
+        raise ValueError("The session does not contain a valid session_id")
     if not isinstance(aspsp, Mapping):
-        raise ValueError("La sessione non contiene dati ASPSP validi")
+        raise ValueError("The session does not contain valid ASPSP data")
 
     bank_name = aspsp.get("name")
     bank_country = aspsp.get("country")
     if not isinstance(bank_name, str) or not bank_name:
-        raise ValueError("I dati ASPSP non contengono un name valido")
+        raise ValueError("The ASPSP data does not contain a valid name")
     if not isinstance(bank_country, str) or not bank_country:
-        raise ValueError("I dati ASPSP non contengono un country valido")
+        raise ValueError("The ASPSP data does not contain a valid country")
 
     bank_key = f"{bank_name}_{bank_country}"
     return session_id, bank_key, bank_name, bank_country
@@ -115,7 +115,7 @@ def load_latest_session(
 
     session = json.loads(row["payload_json"])
     if not isinstance(session, dict):
-        raise ValueError("Il record della sessione non contiene un oggetto JSON")
+        raise ValueError("The session record does not contain a JSON object")
     return session
 
 def save_authorization_flow(
@@ -125,9 +125,9 @@ def save_authorization_flow(
 ) -> None:
     """Store a pending authorization flow."""
     if not state:
-        raise ValueError("Lo state non può essere vuoto")
+        raise ValueError("The state cannot be empty")
     if not bank_key:
-        raise ValueError("La bank_key non può essere vuota")
+        raise ValueError("The bank_key cannot be empty")
 
     with closing(_connect(path)) as connection:
         with connection:
@@ -151,7 +151,7 @@ def consume_authorization_flow(
     if not state:
         return None
     if max_age_seconds <= 0:
-        raise ValueError("max_age_seconds deve essere positivo")
+        raise ValueError("max_age_seconds must be positive")
 
     minimum_created_at = f"-{max_age_seconds} seconds"
 

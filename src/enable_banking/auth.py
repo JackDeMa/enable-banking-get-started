@@ -3,7 +3,7 @@ import time
 import jwt
 
 def create_jwt(
-        *, # serve a dire che tutti gli argomenti devono essere passati come keyword arguments
+        *, # forces every argument to be passed as a keyword argument
         pem_path: Path,
         application_id: str,
         ttl_seconds: int = 3600,
